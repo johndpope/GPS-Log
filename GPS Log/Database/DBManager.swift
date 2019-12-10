@@ -189,7 +189,7 @@ class DBManager
             fatalError("Database handle in WriteDataPoint is nil.")
         }
         let TableName = "Entries"
-        let ColumnList = MakeColumnList(["Session","Latitude","Logitude","Altitude","HorizontalAccuracy","VerticalAccuracy","TimeStamp","Speed",
+        let ColumnList = MakeColumnList(["Session","Latitude","Longitude","Altitude","HorizontalAccuracy","VerticalAccuracy","TimeStamp","Speed",
                                          "Course","Address","Marked","EntryID","InstanceCount","Heading","IsHeadingChanged","HeadingTimeStamp"])
         #if true
         var Update = "INSERT INTO \(TableName)\(ColumnList) VALUES("
@@ -198,26 +198,33 @@ class DBManager
         var Update = "INSERT INTO \(TableName)(Session, Latitude, Longitude, Altitude, HorizontalAccuracy, VerticalAccuracy, TimeStamp, Speed, Course, Address, Marked, EntryID, InstanceCount, Heading, IsHeadingChanged, HeadingTimeStamp) VALUES("
         #endif
         Update.append("'\(TrackData.SessionID.uuidString)', ")
-        Update.append("'\(TrackData.Location!.coordinate.latitude)', ")
-        Update.append("'\(TrackData.Location!.coordinate.longitude)', ")
-        Update.append("'\(TrackData.Location!.altitude)', ")
-        Update.append("'\(TrackData.Location!.horizontalAccuracy)', ")
-        Update.append("'\(TrackData.Location!.verticalAccuracy)', ")
-        Update.append("'\(Utilities.DateToString(TrackData.Location!.timestamp))', ")
-        Update.append("'\(TrackData.Location!.speed)', ")
-        Update.append("'\(TrackData.Location!.course)', ")
-        if TrackData.DecodedAddress == nil
+        if !TrackData.IsHeadingChange
         {
-            Update.append("'n/a', ")
+            Update.append("'\(TrackData.Location!.coordinate.latitude)', ")
+            Update.append("'\(TrackData.Location!.coordinate.longitude)', ")
+            Update.append("'\(TrackData.Location!.altitude)', ")
+            Update.append("'\(TrackData.Location!.horizontalAccuracy)', ")
+            Update.append("'\(TrackData.Location!.verticalAccuracy)', ")
+            Update.append("'\(Utilities.DateToString(TrackData.Location!.timestamp))', ")
+            Update.append("'\(TrackData.Location!.speed)', ")
+            Update.append("'\(TrackData.Location!.course)', ")
+            if TrackData.DecodedAddress == nil
+            {
+                Update.append("'n/a', ")
+            }
+            else
+            {
+                Update.append("'\(ReplaceNewLines(In: TrackData.DecodedAddress!, With: ","))', ")
+            }
+            Update.append("'\(TrackData.IsMarked)', ")
         }
         else
         {
-            Update.append("'\(ReplaceNewLines(In: TrackData.DecodedAddress!, With: ","))', ")
+            Update.append("'0', '0', '0', '0', '0', '1901-01-01 00:00:00', '0', '0', 'n/a', 'false', ")
         }
-        Update.append("'\(TrackData.IsMarked)', ")
         Update.append("'\(TrackData.EntryIDString)', ")
         Update.append("\(TrackData.InstanceCount), ")
-                
+        
         var FinalHeadingTimeStamp = Date()
         if TrackData.IsHeadingChange
         {
@@ -234,13 +241,13 @@ class DBManager
             }
             let HeadingChanged = Int(TrackData.IsHeadingChange ? 1 : 0)
             Update.append("\(HeadingChanged), ")
-
+            
         }
         else
         {
             Update.append("0.0, 0, ")
         }
-                    Update.append("'\(Utilities.DateToString(FinalHeadingTimeStamp))'")
+        Update.append("'\(Utilities.DateToString(FinalHeadingTimeStamp))'")
         Update.append(")")
         var InsertHandle: OpaquePointer? = nil
         if sqlite3_prepare_v2(DB, Update, -1, &InsertHandle, nil) != SQLITE_OK
