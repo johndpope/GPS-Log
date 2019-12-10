@@ -47,6 +47,9 @@ import CoreData
         UserDefaults.standard.set(true, forKey: "ShowMapBusyIndicator")
         UserDefaults.standard.set(45.0, forKey: "MapPitch")
         UserDefaults.standard.set(true, forKey: "MapInPerspective")
+        UserDefaults.standard.set("", forKey: "LastLongitude")
+        UserDefaults.standard.set("", forKey: "LastLatitude")
+        UserDefaults.standard.set("", forKey: "LastAltitude")
     }
     
     /// Initialize defaults if there are no current default settings available.
