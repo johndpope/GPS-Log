@@ -278,6 +278,8 @@ class ViewController: UIViewController,
     {
         if Running
         {
+            LocationManager?.stopUpdatingLocation()
+            LocationManager?.stopUpdatingHeading()
             CurrentSession?.SessionEnd = Date()
             RunSaveSessionDialog()
             StartButton.setImage(UIImage(systemName: "play.fill"), for: UIControl.State.normal)
@@ -285,6 +287,8 @@ class ViewController: UIViewController,
         }
         else
         {
+            LocationManager?.startUpdatingLocation()
+            LocationManager?.startUpdatingHeading()
             UpdateBadgeCount(0)
             CurrentSessionID = UUID()
             CurrentSession = SessionData()
@@ -385,9 +389,13 @@ class ViewController: UIViewController,
     
     /// New locations are available from the location manager.
     /// - Parameter manager: Not used.
-    /// - Parameter didUpdateLocaionts: Array of new locations. We only care about the last one.
+    /// - Parameter didUpdateLocaionts: Array of new locations. We only care about the last one (and usually there is only one).
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation])
     {
+        UserDefaults.standard.set("\(locations[locations.count - 1].coordinate.longitude)", forKey: "LastLongitude")
+        UserDefaults.standard.set("\(locations[locations.count - 1].coordinate.latitude)", forKey: "LastLatitude")
+        UserDefaults.standard.set("\(locations[locations.count - 1].altitude)", forKey: "LastAltitude")
+        
         //This is to initialize the Apple map - it will be executed at the beginning of each instantiation
         //and if necessary when settings change in some circumstances.
         if GetInitialPositionForMap
