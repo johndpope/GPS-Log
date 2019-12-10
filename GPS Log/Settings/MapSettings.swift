@@ -16,11 +16,21 @@ class MapSettings: UITableViewController, UIPickerViewDelegate, UIPickerViewData
     {
         super.viewDidLoad()
         MapTypeSelector.layer.borderColor = UIColor.black.cgColor
+        InPerspectiveSwitch.isOn = UserDefaults.standard.bool(forKey: "MapInPerspective")
         ShowCurrentLocationSwitch.isOn = UserDefaults.standard.bool(forKey: "ShowCurrentLocation")
         ShowCompassSwitch.isOn = UserDefaults.standard.bool(forKey: "ShowCompass")
         ShowBuildingsSwitch.isOn = UserDefaults.standard.bool(forKey: "ShowBuildings")
         ShowTrafficSwitch.isOn = UserDefaults.standard.bool(forKey: "ShowTraffic")
         ShowScaleSwitch.isOn = UserDefaults.standard.bool(forKey: "ShowScale")
+        BusySwitch.isOn = UserDefaults.standard.bool(forKey: "ShowMapBusyIndicator")
+        var RawAngle = UserDefaults.standard.double(forKey: "MapPitch")
+        if ![15.0, 30.0, 45.0, 60.0].contains(RawAngle)
+        {
+            RawAngle = 45.0
+            UserDefaults.standard.set(RawAngle, forKey: "MapPitch")
+        }
+        let AngleIndex = PAngleMap[RawAngle]!
+        AngleSegment.selectedSegmentIndex = AngleIndex
         for SomeType in MapTypes.allCases
         {
             MapSelectorList.append(SomeType.rawValue)
@@ -122,6 +132,49 @@ class MapSettings: UITableViewController, UIPickerViewDelegate, UIPickerViewData
         }
     }
     
+    @IBAction func HandleBusySwitchChanged(_ sender: Any)
+    {
+        if let Switch = sender as? UISwitch
+        {
+            UserDefaults.standard.set(Switch.isOn, forKey: "ShowMapBusyIndicator")
+        }
+    }
+    
+    @IBAction func HandleInPerspectiveChanged(_ sender: Any)
+    {
+        if let Switch = sender as? UISwitch
+        {
+            UserDefaults.standard.set(Switch.isOn, forKey: "MapInPerspective")
+        }
+    }
+    
+    @IBAction func HandleAngleChanged(_ sender: Any)
+    {
+        if let Segment = sender as? UISegmentedControl
+        {
+            let NewIndex = Segment.selectedSegmentIndex
+            for (Angle, SegIndex) in PAngleMap
+            {
+                if SegIndex == NewIndex
+                {
+                    UserDefaults.standard.set(Angle, forKey: "MapPitch")
+                    return
+                }
+            }
+        }
+    }
+    
+    let PAngleMap: [Double: Int] =
+    [
+        15.0: 0,
+        30.0: 1,
+        45.0: 2,
+        60.0: 3
+    ]
+    
+    @IBOutlet weak var AngleSegment: UISegmentedControl!
+    @IBOutlet weak var InPerspectiveSwitch: UISwitch!
+    @IBOutlet weak var BusySwitch: UISwitch!
     @IBOutlet weak var ShowScaleSwitch: UISwitch!
     @IBOutlet weak var ShowTrafficSwitch: UISwitch!
     @IBOutlet weak var ShowBuildingsSwitch: UISwitch!
