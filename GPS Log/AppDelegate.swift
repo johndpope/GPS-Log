@@ -21,6 +21,9 @@ import CoreData
         return true
     }
     
+    /// Create and add default settings.
+    /// - Note: If called after initialize instantiation, all user-settings will be overwritten. User data
+    ///         (in the form of the log database) will *not* be affected.
     func AddDefaultSettings()
     {
         UserDefaults.standard.set("Initialized", forKey: "Initialized")
@@ -42,8 +45,11 @@ import CoreData
         UserDefaults.standard.set(true, forKey: "ShowScale")
         UserDefaults.standard.set(true, forKey: "ShowAccumulatedPointsAsBadge")
         UserDefaults.standard.set(true, forKey: "ShowMapBusyIndicator")
+        UserDefaults.standard.set(45.0, forKey: "MapPitch")
+        UserDefaults.standard.set(true, forKey: "MapInPerspective")
     }
     
+    /// Initialize defaults if there are no current default settings available.
     func InitializeDefaults()
     {
         if UserDefaults.standard.string(forKey: "Initialized") == nil
