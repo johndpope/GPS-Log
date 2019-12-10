@@ -12,6 +12,10 @@ The versioning program does not currently update the GPS Log project file's vers
 
 Most recent build: **Version 1.0 Alpha, Build 106, Build date: 10 December 2019, 16:23**
 
+## Respository
+
+GPS Log is stored on GitHub at https://github.com/sjrankin/GPS-Log. 
+
 ## Design
 
 GPS log works by getting a continuous stream of coordinates from the device's GPS unit. The user determines how often to use a sample, so if the user indicates once a minute, at least one minute will have to pass before a location is accumulated. Locations passed to the program outside of the sample time-frame will be dropped.
