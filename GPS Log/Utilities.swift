@@ -259,4 +259,15 @@ class Utilities
         }
         return Address
     }
+    
+    /// Calculate the length of a given line of latitude on the Earth, asuming (incorrectly) the Earth is
+    /// a perfect sphere. For our purposes, it is.
+    /// - Note: See [Calculate length of latitude line.](https://boards.straightdope.com/sdmb/showthread.php?t=680496)
+    /// - Parameter Angle: The latitude value in degrees. Negative (eg, southern) latitudes will return positive
+    ///                    distances.
+    /// - Returns: Length of line of latitude at given angle measure in degress. Returned length is in kilometers.
+    func LengthOfLatitude(_ Angle: Double) -> Double
+    {
+        return cos(abs(Angle) * Double.pi / 180.0) * 40075.017
+    }
 }
