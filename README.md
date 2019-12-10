@@ -69,7 +69,7 @@ The **Sessions** table has the following columns:
 | **InstanceCount**| `Integer` | Number of times this location was recorded in a row |
 | **Heading** | `Real` | If data represents a heading change, the new heading value |
 | **IsHeadingChanged** | `Integer` | If this value is 0, the data is for a location - if non-zero the data is for a heading change |
-| **HeadingTimeStamp** | 'Text' | Time stamp for the heading change |
+| **HeadingTimeStamp** | `Text` | Time stamp for the heading change |
 
 ### Database Access
 
