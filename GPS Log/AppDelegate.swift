@@ -33,7 +33,7 @@ import CoreData
         UserDefaults.standard.set(true, forKey: "DecodeAddresses")
         UserDefaults.standard.set(true, forKey: "StayAwake")
         UserDefaults.standard.set(true, forKey: "TrackHeadings")
-        UserDefaults.standard.set(1.0, forKey: "HeadingSensitivity")
+        UserDefaults.standard.set(10.0, forKey: "HeadingSensitivity")
         UserDefaults.standard.set("Standard", forKey: "MapType")
         UserDefaults.standard.set(true, forKey: "ShowCurrentLocation")
         UserDefaults.standard.set(true, forKey: "ShowCompass")
@@ -41,6 +41,7 @@ import CoreData
         UserDefaults.standard.set(false, forKey: "ShowTraffic")
         UserDefaults.standard.set(true, forKey: "ShowScale")
         UserDefaults.standard.set(true, forKey: "ShowAccumulatedPointsAsBadge")
+        UserDefaults.standard.set(true, forKey: "ShowMapBusyIndicator")
     }
     
     func InitializeDefaults()
