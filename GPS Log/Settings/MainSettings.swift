@@ -122,29 +122,6 @@ class MainSettings: UITableViewController, UIPickerViewDelegate, UIPickerViewDat
         }
     }
     
-    @IBAction func HandleDataViewChanged(_ sender: Any)
-    {
-        if let Segment = sender as? UISegmentedControl
-        {
-            var NewView: DataViews = .Table
-            switch Segment.selectedSegmentIndex
-            {
-                case 0:
-                    NewView = .Table
-                
-                case 1:
-                    NewView = .AppleMap
-                
-                case 2:
-                    NewView = .Map3D
-                
-                default:
-                fatalError("Unexpected segment index \(Segment.selectedSegmentIndex) for data view.")
-            }
-            UserDefaults.standard.set("\(NewView)", forKey: "DataViews")
-        }
-    }
-    
     @IBAction func HandleStayAwakeChanged(_ sender: Any)
     {
         if let Switch = sender as? UISwitch
@@ -158,5 +135,4 @@ class MainSettings: UITableViewController, UIPickerViewDelegate, UIPickerViewDat
     @IBOutlet weak var FrequencyPicker: UIPickerView!
     @IBOutlet weak var GetAddressesSwitch: UISwitch!
     @IBOutlet weak var BGCollectionSwitch: UISwitch!
-    @IBOutlet weak var DataViewSegment: UISegmentedControl!
 }
