@@ -89,17 +89,19 @@ class LocationCell: UITableViewCell
         if LocationData.IsHeadingChange
         {
             self.backgroundColor = UIColor(red: 175.0 / 255.0, green: 216.0 / 255.0, blue: 245.0 / 255.0, alpha: 1.0)  //"Uranian Blue"
+            let HeadingValue = LocationData.Heading?.trueHeading ?? LocationData.HeadingValue
+            let HeadingString = Utilities.RoundedString(Value: HeadingValue, Precision: 3) + "°"
             if LocationData.Heading == nil
             {
                 TimeLabel.text = Utilities.DateToString(LocationData.HeadingTimeStamp!)
                 AddressLabel.text = ""
-                CoordinatesLabel.text = "New heading\n\(Utilities.RoundedString(Value: LocationData.HeadingValue))"
+                CoordinatesLabel.text = "Heading to \(HeadingString)"
             }
             else
             {
                 TimeLabel.text = Utilities.DateToString(LocationData.Heading!.timestamp)
                 AddressLabel.text = ""
-                CoordinatesLabel.text = "New heading\n\(Utilities.RoundedString(Value: LocationData.Heading!.trueHeading))"
+                CoordinatesLabel.text = "Heading to \(HeadingString)"
             }
         }
         else
