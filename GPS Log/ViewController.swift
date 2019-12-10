@@ -74,12 +74,18 @@ class ViewController: UIViewController,
     }
     
     /// Handle asynchronous changes to the user default values.
+    /// - Note: All settings that directly effect the UI and how data are collected will be used to reset the
+    ///         app as it is running. In other words, large-scale updates of the app will occur here.
     /// - Note: See: [How to determine when settings change](https://stackoverflow.com/questions/3927402/how-to-determine-when-settings-change-on-ios/33722059#33722059)
     /// - Parameter notification: The change notification.
     @objc func HandleDefaultChanges(notification: Notification)
     {
-        if let Defaults = notification.object as? UserDefaults
+        if let _ = notification.object as? UserDefaults
         {
+            if !UserDefaults.standard.bool(forKey: "ShowMapBusyIndicator")
+            {
+                HideBusyIndicator()
+            }
             MapViewer.showsScale = UserDefaults.standard.bool(forKey: "ShowScale")
             MapViewer.showsCompass = UserDefaults.standard.bool(forKey: "ShowCompass")
             MapViewer.showsTraffic = UserDefaults.standard.bool(forKey: "ShowTraffic")
@@ -379,14 +385,14 @@ class ViewController: UIViewController,
         
         //If required, check for duplicates. Also, always record duplicate locations as instance counts.
         #if true
-        if let PreviousLocation = CurrentSession?.Locations.first
+        if let PreviousLocation = GetMostRecentLocationInSession()
         {
             let Distance = NewLocation.distance(from: PreviousLocation.Location!)
             if Distance < UserDefaults.standard.double(forKey: "HorizontalCloseness")
             {
                 PreviousLocation.InstanceCount = PreviousLocation.InstanceCount + 1
                 DBManager.UpdateLocation(DB: DBHandle, PreviousLocation)
-                let VerticalDistance = abs(LastLocation!.altitude - NewLocation.altitude)
+                let VerticalDistance = abs(PreviousLocation.Location!.altitude - NewLocation.altitude)
                 if VerticalDistance < UserDefaults.standard.double(forKey: "VerticalCloseness")
                 {
                     if UserDefaults.standard.bool(forKey: "DiscardDuplicates") && LastLocation != nil
@@ -432,6 +438,21 @@ class ViewController: UIViewController,
         LastLocation = NewLocation
     }
     
+    /// Returns the most recent non-heading change location in the current session.
+    /// - Returns: The most recent non-heading change location in the current session on success, nil if none
+    ///            found.
+    func GetMostRecentLocationInSession() -> DataPoint?
+    {
+        for Location in CurrentSession!.Locations
+        {
+            if !Location.IsHeadingChange
+            {
+                return Location
+            }
+        }
+        return nil
+    }
+    
     var LastLocationTime: Double = 0
     
     var LastLocation: CLLocation? = nil
@@ -446,6 +467,7 @@ class ViewController: UIViewController,
             if Running
             {
                 let NewHeading = DataPoint(WithHeading: didUpdateHeading, Delegate: nil)
+                NewHeading.SessionID = CurrentSession!.ID
                 DBManager.WriteDataPoint(DB: DBHandle, TrackData: NewHeading)
                 AddNewDataPoint(NewHeading)
             }
@@ -558,18 +580,27 @@ class ViewController: UIViewController,
     
     func mapViewWillStartLoadingMap(_ mapView: MKMapView)
     {
+        if UserDefaults.standard.bool(forKey: "ShowMapBusyIndicator")
+        {
         ShowBusyIndicator()
+        }
     }
     
     func mapViewDidFinishLoadingMap(_ mapView: MKMapView)
     {
+        if UserDefaults.standard.bool(forKey: "ShowMapBusyIndicator")
+        {
         HideBusyIndicator()
+        }
     }
     
     func mapViewDidFailLoadingMap(_ mapView: MKMapView, withError error: Error)
     {
         print("Failed to load map: \(error.localizedDescription)")
-        ShowErrorIndicator()
+        if UserDefaults.standard.bool(forKey: "ShowMapBusyIndicator")
+        {
+            ShowErrorIndicator()
+        }
     }
     
     // MARK: - View selection handling.
