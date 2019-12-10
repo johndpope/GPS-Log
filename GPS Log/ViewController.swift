@@ -50,13 +50,31 @@ class ViewController: UIViewController,
     
     var DBHandle: OpaquePointer? = nil
     
+    /// Set the map's camera position and pitch.
     func SetMapCamera(CenteredOn: CLLocationCoordinate2D, AtAltitude: Double)
     {
+        let OldCamera = MapViewer.camera
         let MapCamera = MKMapCamera()
         MapCamera.centerCoordinate = CenteredOn
-        MapCamera.pitch = 45.0
+        if UserDefaults.standard.bool(forKey: "MapInPerspective")
+        {
+            print("Setting map pitch to \(UserDefaults.standard.double(forKey: "MapPitch"))")
+            MapViewer.isPitchEnabled = true
+            MapCamera.pitch = CGFloat(UserDefaults.standard.double(forKey: "MapPitch"))
+        }
+        else
+        {
+            print("Disabling pitch.")
+            MapViewer.isPitchEnabled = false
+        }
         MapCamera.altitude = AtAltitude
-        MapCamera.heading = 4.0
+        MapCamera.heading = 0.0
+        if MapCamera.altitude == OldCamera.altitude &&
+            MapCamera.heading == OldCamera.heading &&
+            MapCamera.pitch == OldCamera.pitch
+        {
+            return
+        }
         MapViewer.camera = MapCamera
     }
     
@@ -85,6 +103,22 @@ class ViewController: UIViewController,
             if !UserDefaults.standard.bool(forKey: "ShowMapBusyIndicator")
             {
                 HideBusyIndicator()
+            }
+            if UserDefaults.standard.bool(forKey: "MapInPerspective")
+            {
+                MapViewer.isPitchEnabled = false
+                if let MostRecentLocation = GetMostRecentLocationInSession()
+                {
+                    SetMapCamera(CenteredOn: MostRecentLocation.Location!.coordinate, AtAltitude: 500.0)
+                }
+                else
+                {
+                    GetInitialPositionForMap = true
+                }
+            }
+            else
+            {
+                MapViewer.isPitchEnabled = false
             }
             MapViewer.showsScale = UserDefaults.standard.bool(forKey: "ShowScale")
             MapViewer.showsCompass = UserDefaults.standard.bool(forKey: "ShowCompass")
@@ -354,7 +388,8 @@ class ViewController: UIViewController,
     /// - Parameter didUpdateLocaionts: Array of new locations. We only care about the last one.
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation])
     {
-        //This is to initialize the Apple map - it is executed only once per instantiation.
+        //This is to initialize the Apple map - it will be executed at the beginning of each instantiation
+        //and if necessary when settings change in some circumstances.
         if GetInitialPositionForMap
         {
             GetInitialPositionForMap = false
@@ -383,8 +418,8 @@ class ViewController: UIViewController,
             return
         }
         
-        //If required, check for duplicates. Also, always record duplicate locations as instance counts.
-        #if true
+        //If required, check for duplicates. Also, always record duplicate locations as instance counts. Marked locations are
+        //not returned by `GetMostRecentLocationInSession`.
         if let PreviousLocation = GetMostRecentLocationInSession()
         {
             let Distance = NewLocation.distance(from: PreviousLocation.Location!)
@@ -405,21 +440,6 @@ class ViewController: UIViewController,
                 }
             }
         }
-        #else
-        if UserDefaults.standard.bool(forKey: "DiscardDuplicates") && LastLocation != nil
-        {
-            let Distance = NewLocation.distance(from: LastLocation!)
-            if Distance < UserDefaults.standard.double(forKey: "HorizontalCloseness")
-            {
-                let VerticalDistance = abs(LastLocation!.altitude - NewLocation.altitude)
-                if VerticalDistance < UserDefaults.standard.double(forKey: "VerticalCloseness")
-                {
-                    print("Duplicate location skipped.")
-                    return
-                }
-            }
-        }
-        #endif
         
         //Verify it is now time to save a location.
         let Now = CACurrentMediaTime()
@@ -439,12 +459,17 @@ class ViewController: UIViewController,
     }
     
     /// Returns the most recent non-heading change location in the current session.
+    /// - Note: Marked locations are not returned.
     /// - Returns: The most recent non-heading change location in the current session on success, nil if none
     ///            found.
     func GetMostRecentLocationInSession() -> DataPoint?
     {
         for Location in CurrentSession!.Locations
         {
+            if Location.IsMarked
+            {
+                continue
+            }
             if !Location.IsHeadingChange
             {
                 return Location
@@ -483,15 +508,6 @@ class ViewController: UIViewController,
         DataPointTable.reloadData()
     }
     
-    /*
-    @IBSegueAction func HandleSavedSessionsInstantiation(_ coder: NSCoder) -> SessionList?
-    {
-        let SessionController = SessionList(coder: coder)
-        SessionController?.Main = self
-        return SessionController
-    }
- */
-    
     // MARK: - Apple Map functions.
     
     var CurrentAnnotations: [MKPointAnnotation] = []
@@ -503,11 +519,10 @@ class ViewController: UIViewController,
                                  width: view.frame.width,
                                  height: view.frame.height - (20.0 + 80.0))
         self.view.sendSubviewToBack(MapViewer)
-        MapViewer.isPitchEnabled = true
-        MapViewer.showsCompass = true
-        MapViewer.showsBuildings = true
-        MapViewer.showsScale = true
-        MapViewer.showsTraffic = true
+        MapViewer.showsCompass = UserDefaults.standard.bool(forKey: "ShowCompass")
+        MapViewer.showsBuildings = UserDefaults.standard.bool(forKey: "ShowBuildings")
+        MapViewer.showsScale = UserDefaults.standard.bool(forKey: "ShowScale")
+        MapViewer.showsTraffic = UserDefaults.standard.bool(forKey: "ShowTraffic")
         GetInitialPositionForMap = true
     }
     
