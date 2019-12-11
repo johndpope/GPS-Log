@@ -19,7 +19,8 @@ class ViewController: UIViewController,
     CLLocationManagerDelegate,
     MKMapViewDelegate,
     DataPointUpdatedProtocol,
-    MainProtocol
+    MainProtocol,
+    SettingChangedProtocol
 {
     override func viewDidLoad()
     {
@@ -33,8 +34,8 @@ class ViewController: UIViewController,
         DataPointTable.layer.borderColor = UIColor.black.cgColor
         DBManager.VerifyDatabase("Log.db")
         DBHandle = DBManager.GetDatabaseHandle("Log.db")
-        NotificationCenter.default.addObserver(self, selector: #selector(HandleDefaultChanges), name: UserDefaults.didChangeNotification, object: nil)
-        CurrentView = DataViews(rawValue: UserDefaults.standard.string(forKey: "DataViews")!)!
+        Settings.AddSubscriber(self, "Main")
+        CurrentView = DataViews(rawValue: Settings.GetString(ForKey: .DataViews)!)!
         switch CurrentView
         {
             case .Table:
@@ -56,11 +57,12 @@ class ViewController: UIViewController,
         let OldCamera = MapViewer.camera
         let MapCamera = MKMapCamera()
         MapCamera.centerCoordinate = CenteredOn
-        if UserDefaults.standard.bool(forKey: "MapInPerspective")
+        if Settings.GetBoolean(ForKey: .MapInPerspective)
         {
-            print("Setting map pitch to \(UserDefaults.standard.double(forKey: "MapPitch"))")
+            let MapPitch = Settings.GetDouble(ForKey: .MapPitch)
+            print("Setting map pitch to \(MapPitch)")
             MapViewer.isPitchEnabled = true
-            MapCamera.pitch = CGFloat(UserDefaults.standard.double(forKey: "MapPitch"))
+            MapCamera.pitch = CGFloat(MapPitch)
         }
         else
         {
@@ -86,98 +88,129 @@ class ViewController: UIViewController,
         LocationManager?.requestAlwaysAuthorization()
         LocationManager?.desiredAccuracy = kCLLocationAccuracyBestForNavigation
         LocationManager?.allowsBackgroundLocationUpdates = true
-        LocationManager?.headingFilter = 1.0
+        LocationManager?.headingFilter = Settings.GetDouble(ForKey: .HeadingSensitivity)
         LocationManager?.startUpdatingLocation()
         LocationManager?.startUpdatingHeading()
     }
     
-    /// Handle asynchronous changes to the user default values.
-    /// - Note: All settings that directly effect the UI and how data are collected will be used to reset the
-    ///         app as it is running. In other words, large-scale updates of the app will occur here.
-    /// - Note: See: [How to determine when settings change](https://stackoverflow.com/questions/3927402/how-to-determine-when-settings-change-on-ios/33722059#33722059)
-    /// - Parameter notification: The change notification.
-    @objc func HandleDefaultChanges(notification: Notification)
+    func WillChangeSetting(_ ChangedSetting: SettingKeys, NewValue: Any, CancelChange: inout Bool)
     {
-        if let _ = notification.object as? UserDefaults
+        CancelChange = false
+    }
+    
+    func DidChangeSetting(_ ChangedSetting: SettingKeys)
+    {
+        switch ChangedSetting
         {
-            if !UserDefaults.standard.bool(forKey: "ShowMapBusyIndicator")
-            {
-                HideBusyIndicator()
-            }
-            if UserDefaults.standard.bool(forKey: "MapInPerspective")
-            {
-                MapViewer.isPitchEnabled = false
-                if let MostRecentLocation = GetMostRecentLocationInSession()
+            case .ShowMapBusyIndicator:
+                if !Settings.GetBoolean(ForKey: .ShowMapBusyIndicator)
                 {
-                    SetMapCamera(CenteredOn: MostRecentLocation.Location!.coordinate, AtAltitude: 500.0)
+                    HideBusyIndicator()
+            }
+            
+            case .MapInPerspective:
+                if Settings.GetBoolean(ForKey: .MapInPerspective)
+                {
+                    MapViewer.isPitchEnabled = false
+                    if let MostRecentLocation = GetMostRecentLocationInSession()
+                    {
+                        SetMapCamera(CenteredOn: MostRecentLocation.Location!.coordinate, AtAltitude: 500.0)
+                    }
+                    else
+                    {
+                        GetInitialPositionForMap = true
+                    }
                 }
                 else
                 {
-                    GetInitialPositionForMap = true
-                }
+                    MapViewer.isPitchEnabled = false
             }
-            else
-            {
-                MapViewer.isPitchEnabled = false
-            }
-            MapViewer.showsScale = UserDefaults.standard.bool(forKey: "ShowScale")
-            MapViewer.showsCompass = UserDefaults.standard.bool(forKey: "ShowCompass")
-            MapViewer.showsTraffic = UserDefaults.standard.bool(forKey: "ShowTraffic")
-            MapViewer.showsBuildings = UserDefaults.standard.bool(forKey: "ShowBuildings")
-            MapViewer.showsUserLocation = UserDefaults.standard.bool(forKey: "ShowCurrentLocation")
-            var MapType = MKMapType.standard
-            if let RawMapType = UserDefaults.standard.string(forKey: "MapType")
-            {
-                let TheMapType = MapTypes(rawValue: RawMapType)!
-                switch TheMapType
+            
+            case .ShowScale:
+                MapViewer.showsScale = Settings.GetBoolean(ForKey: .ShowScale)
+            
+            case .ShowCompass:
+                MapViewer.showsCompass = Settings.GetBoolean(ForKey: .ShowCompass)
+            
+            case .ShowTraffic:
+                MapViewer.showsTraffic = Settings.GetBoolean(ForKey: .ShowTraffic)
+            
+            case .ShowBuildings:
+                MapViewer.showsBuildings = Settings.GetBoolean(ForKey: .ShowBuildings)
+            
+            case .ShowCurrentLocation:
+                MapViewer.showsUserLocation = Settings.GetBoolean(ForKey: .ShowCurrentLocation)
+            
+            case .MapType:
+                var MapType = MKMapType.standard
+                if let RawMapType = Settings.GetString(ForKey: .MapType)
                 {
-                    case .Standard:
-                        MapType = .standard
-                    
-                    case .MutedStandard:
-                        MapType = .mutedStandard
-                    
-                    case .Hybrid:
-                        MapType = .hybrid
-                    
-                    case .Satellite:
-                        MapType = .satellite
-                    
-                    case .HybridFlyover:
-                        MapType = .hybridFlyover
-                    
-                    case .SatelliteFlyover:
-                        MapType = .satelliteFlyover
-                }
-            }
-            else
-            {
-                UserDefaults.standard.set(MapTypes.Standard.rawValue, forKey: "MapType")
-            }
-            MapViewer.mapType = MapType
-            LocationManager?.headingFilter = UserDefaults.standard.double(forKey: "HeadingSensitivity")
-            if UserDefaults.standard.bool(forKey: "TrackHeadings")
-            {
-                LocationManager?.startUpdatingHeading()
-            }
-            let ViewValue = UserDefaults.standard.string(forKey: "DataViews")
-            if let NewViewValue = DataViews(rawValue: ViewValue!)
-            {
-                if NewViewValue != CurrentView
-                {
-                    switch NewViewValue
+                    let TheMapType = MapTypes(rawValue: RawMapType)!
+                    switch TheMapType
                     {
-                        case .Table:
-                            HandleTableSelected()
+                        case .Standard:
+                            MapType = .standard
                         
-                        case .AppleMap:
-                            HandleMapSelected()
+                        case .MutedStandard:
+                            MapType = .mutedStandard
                         
-                        default:
-                            break
+                        case .Hybrid:
+                            MapType = .hybrid
+                        
+                        case .Satellite:
+                            MapType = .satellite
+                        
+                        case .HybridFlyover:
+                            MapType = .hybridFlyover
+                        
+                        case .SatelliteFlyover:
+                            MapType = .satelliteFlyover
                     }
                 }
+                else
+                {
+                    Settings.SetString(MapTypes.Standard.rawValue, ForKey: .MapType)
+                }
+                MapViewer.mapType = MapType
+            
+            case .HeadingSensitivity:
+                LocationManager?.headingFilter = Settings.GetDouble(ForKey: .HeadingSensitivity)
+            
+            case .TrackHeadings:
+                if Settings.GetBoolean(ForKey: .TrackHeadings)
+                {
+                    LocationManager?.startUpdatingHeading()
+                }
+                else
+                {
+                    LocationManager?.stopUpdatingHeading()
             }
+            
+            case .DataViews:
+                let ViewValue = Settings.GetString(ForKey: .DataViews)
+                if let NewViewValue = DataViews(rawValue: ViewValue!)
+                {
+                    if NewViewValue != CurrentView
+                    {
+                        switch NewViewValue
+                        {
+                            case .Table:
+                                HandleTableSelected()
+                            
+                            case .AppleMap:
+                                HandleMapSelected()
+                            
+                            default:
+                                break
+                        }
+                    }
+            }
+            
+            default:
+                #if DEBUG
+                print("Change to \(ChangedSetting.rawValue) unhandled.")
+                #endif
+                break
         }
     }
     
@@ -325,7 +358,7 @@ class ViewController: UIViewController,
                 self.CurrentSession!.Locations.insert(Location, at: 0)
                 self.UpdateMapWith(Location)
                 self.DataPointTable.reloadData()
-                if UserDefaults.standard.bool(forKey: "ShowAccumulatedPointsAsBadge")
+                if Settings.GetBoolean(ForKey: .ShowBadge)
                 {
                     let Count = self.CurrentSession!.Locations.count
                     if Count > 0
@@ -392,9 +425,9 @@ class ViewController: UIViewController,
     /// - Parameter didUpdateLocaionts: Array of new locations. We only care about the last one (and usually there is only one).
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation])
     {
-        UserDefaults.standard.set("\(locations[locations.count - 1].coordinate.longitude)", forKey: "LastLongitude")
-        UserDefaults.standard.set("\(locations[locations.count - 1].coordinate.latitude)", forKey: "LastLatitude")
-        UserDefaults.standard.set("\(locations[locations.count - 1].altitude)", forKey: "LastAltitude")
+        Settings.SetString("\(locations[locations.count - 1].coordinate.longitude)", ForKey: .LastLongitude)
+        Settings.SetString("\(locations[locations.count - 1].coordinate.latitude)", ForKey: .LastLatitude)
+        Settings.SetString("\(locations[locations.count - 1].altitude)", ForKey: .LastAltitude)
         
         //This is to initialize the Apple map - it will be executed at the beginning of each instantiation
         //and if necessary when settings change in some circumstances.
@@ -406,7 +439,7 @@ class ViewController: UIViewController,
             return
         }
         
-        let Period = UserDefaults.standard.integer(forKey: "Period")
+        let Period = Settings.GetInteger(ForKey: .Period)
         let NewLocation = locations[locations.count - 1]
         
         //Saving a marked location takes priority over duplication elimination.
@@ -431,14 +464,14 @@ class ViewController: UIViewController,
         if let PreviousLocation = GetMostRecentLocationInSession()
         {
             let Distance = NewLocation.distance(from: PreviousLocation.Location!)
-            if Distance < UserDefaults.standard.double(forKey: "HorizontalCloseness")
+            if Distance < Settings.GetDouble(ForKey: .HorizontalCloseness)
             {
                 PreviousLocation.InstanceCount = PreviousLocation.InstanceCount + 1
                 DBManager.UpdateLocation(DB: DBHandle, PreviousLocation)
                 let VerticalDistance = abs(PreviousLocation.Location!.altitude - NewLocation.altitude)
-                if VerticalDistance < UserDefaults.standard.double(forKey: "VerticalCloseness")
+                if VerticalDistance < Settings.GetDouble(ForKey: .VerticalCloseness)
                 {
-                    if UserDefaults.standard.bool(forKey: "DiscardDuplicates") && LastLocation != nil
+                    if Settings.GetBoolean(ForKey: .DiscardDuplicates)
                     {
                         #if DEBUG
                         print("Duplicate location skipped. [\(PreviousLocation.InstanceCount)]")
@@ -492,7 +525,7 @@ class ViewController: UIViewController,
     
     func locationManager(_ manager: CLLocationManager, didUpdateHeading: CLHeading)
     {
-        if UserDefaults.standard.bool(forKey: "TrackHeadings")
+        if Settings.GetBoolean(ForKey: .TrackHeadings)
         {
             let HeadingTime = didUpdateHeading.timestamp
             let ActualHeading = didUpdateHeading.trueHeading
@@ -527,10 +560,49 @@ class ViewController: UIViewController,
                                  width: view.frame.width,
                                  height: view.frame.height - (20.0 + 80.0))
         self.view.sendSubviewToBack(MapViewer)
-        MapViewer.showsCompass = UserDefaults.standard.bool(forKey: "ShowCompass")
-        MapViewer.showsBuildings = UserDefaults.standard.bool(forKey: "ShowBuildings")
-        MapViewer.showsScale = UserDefaults.standard.bool(forKey: "ShowScale")
-        MapViewer.showsTraffic = UserDefaults.standard.bool(forKey: "ShowTraffic")
+        MapViewer.isZoomEnabled = true
+        MapViewer.isPitchEnabled = Settings.GetBoolean(ForKey: .MapInPerspective)
+        MapViewer.isScrollEnabled = true
+        MapViewer.showsCompass = Settings.GetBoolean(ForKey: .ShowCompass)
+        MapViewer.showsBuildings = Settings.GetBoolean(ForKey: .ShowBuildings)
+        MapViewer.showsScale = Settings.GetBoolean(ForKey: .ShowScale)
+        MapViewer.showsTraffic = Settings.GetBoolean(ForKey: .ShowTraffic)
+        if let MapTypeString = Settings.GetString(ForKey: .MapType)
+        {
+            if let MapType = MapTypes(rawValue: MapTypeString)
+            {
+                switch MapType
+                {
+                    case .Hybrid:
+                        MapViewer.mapType = .hybrid
+                    
+                    case .HybridFlyover:
+                        MapViewer.mapType = .hybridFlyover
+                    
+                    case .MutedStandard:
+                        MapViewer.mapType = .mutedStandard
+                    
+                    case .Satellite:
+                        MapViewer.mapType = .satellite
+                    
+                    case .SatelliteFlyover:
+                        MapViewer.mapType = .satelliteFlyover
+                    
+                    case .Standard:
+                        MapViewer.mapType = .standard
+                }
+            }
+            else
+            {
+                MapViewer.mapType = .standard
+                Settings.SetString(MapTypes.Standard.rawValue, ForKey: .MapType)
+            }
+        }
+        else
+        {
+            MapViewer.mapType = .standard
+            Settings.SetString(MapTypes.Standard.rawValue, ForKey: .MapType)
+        }
         GetInitialPositionForMap = true
     }
     
@@ -603,24 +675,24 @@ class ViewController: UIViewController,
     
     func mapViewWillStartLoadingMap(_ mapView: MKMapView)
     {
-        if UserDefaults.standard.bool(forKey: "ShowMapBusyIndicator")
+        if Settings.GetBoolean(ForKey: .ShowMapBusyIndicator)
         {
-        ShowBusyIndicator()
+            ShowBusyIndicator()
         }
     }
     
     func mapViewDidFinishLoadingMap(_ mapView: MKMapView)
     {
-        if UserDefaults.standard.bool(forKey: "ShowMapBusyIndicator")
+        if Settings.GetBoolean(ForKey: .ShowMapBusyIndicator)
         {
-        HideBusyIndicator()
+            HideBusyIndicator()
         }
     }
     
     func mapViewDidFailLoadingMap(_ mapView: MKMapView, withError error: Error)
     {
         print("Failed to load map: \(error.localizedDescription)")
-        if UserDefaults.standard.bool(forKey: "ShowMapBusyIndicator")
+        if Settings.GetBoolean(ForKey: .ShowMapBusyIndicator)
         {
             ShowErrorIndicator()
         }
@@ -634,7 +706,7 @@ class ViewController: UIViewController,
         MapViewer.layer.zPosition = -1000
         view.sendSubviewToBack(MapViewer)
         CurrentView = .Table
-        UserDefaults.standard.set(CurrentView.rawValue, forKey: "DataViews")
+        Settings.SetString(CurrentView.rawValue, ForKey: .DataViews)
     }
     
     func HandleMapSelected()
@@ -644,7 +716,7 @@ class ViewController: UIViewController,
         MapViewer.isUserInteractionEnabled = true
         view.bringSubviewToFront(MapViewer)
         CurrentView = .AppleMap
-        UserDefaults.standard.set(CurrentView.rawValue, forKey: "DataViews")
+        Settings.SetString(CurrentView.rawValue, ForKey: .DataViews)
     }
     
     var CurrentView: DataViews = .Table
@@ -653,7 +725,7 @@ class ViewController: UIViewController,
     {
         if ShowingViewView
         {
-             CloseDrawer()
+            CloseDrawer()
         }
         else
         {
