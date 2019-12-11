@@ -182,7 +182,7 @@ class DBManager
     /// - Parameter DB: Handle to the database to which we will write.
     /// - Parameter TrackData: The data to write.
     /// - Returns: True on success, false on failure.
-    public static func WriteDataPoint(DB: OpaquePointer?, TrackData: DataPoint) -> Bool
+    @discardableResult public static func WriteDataPoint(DB: OpaquePointer?, TrackData: DataPoint) -> Bool
     {
         if DB == nil
         {
@@ -191,12 +191,7 @@ class DBManager
         let TableName = "Entries"
         let ColumnList = MakeColumnList(["Session","Latitude","Longitude","Altitude","HorizontalAccuracy","VerticalAccuracy","TimeStamp","Speed",
                                          "Course","Address","Marked","EntryID","InstanceCount","Heading","IsHeadingChanged","HeadingTimeStamp"])
-        #if true
         var Update = "INSERT INTO \(TableName)\(ColumnList) VALUES("
-        #else
-        print("\(ColumnList)")
-        var Update = "INSERT INTO \(TableName)(Session, Latitude, Longitude, Altitude, HorizontalAccuracy, VerticalAccuracy, TimeStamp, Speed, Course, Address, Marked, EntryID, InstanceCount, Heading, IsHeadingChanged, HeadingTimeStamp) VALUES("
-        #endif
         Update.append("'\(TrackData.SessionID.uuidString)', ")
         if !TrackData.IsHeadingChange
         {
@@ -272,7 +267,7 @@ class DBManager
     /// - Parameter EndTime: The ending time of the session.
     /// - Parameter SessionName: The name of the session.
     /// - Returns: True on success, false on failure.
-    public static func WriteSession(DB: OpaquePointer?, SessionID: UUID, StartTime: Date, EndTime: Date, SessionName: String) -> Bool
+    @discardableResult public static func WriteSession(DB: OpaquePointer?, SessionID: UUID, StartTime: Date, EndTime: Date, SessionName: String) -> Bool
     {
         if DB == nil
         {
@@ -311,7 +306,7 @@ class DBManager
     /// - Parameter EndDate: The end date of the session to write.
     /// - Parameter Name: The name of the session to write.
     /// - Returns: True on success, false on failure.
-    public static func WriteDateAndName(DB: OpaquePointer?, SessionID: UUID, EndDate: Date, Name: String) -> Bool
+    @discardableResult public static func WriteDateAndName(DB: OpaquePointer?, SessionID: UUID, EndDate: Date, Name: String) -> Bool
     {
         if DB == nil
         {
