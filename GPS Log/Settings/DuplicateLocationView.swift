@@ -14,10 +14,10 @@ class DuplicateLocationView: UITableViewController
     override func viewDidLoad()
     {
         super.viewDidLoad()
-        DiscardDuplicatesSwitch.isOn = UserDefaults.standard.bool(forKey: "DiscardDuplicates")
-        let HSeg = SegmentForRadial(UserDefaults.standard.double(forKey: "HorizontalCloseness"))
+        DiscardDuplicatesSwitch.isOn = Settings.GetBoolean(ForKey: .DiscardDuplicates)
+        let HSeg = SegmentForRadial(Settings.GetDouble(ForKey: .HorizontalCloseness))
         HorizontalDuplicateRadius.selectedSegmentIndex = HSeg
-        let VSeg = SegmentForRadial(UserDefaults.standard.double(forKey: "VerticalCloseness"))
+        let VSeg = SegmentForRadial(Settings.GetDouble(ForKey: .VerticalCloseness))
         VerticalDuplicateRadius.selectedSegmentIndex = VSeg
     }
     
@@ -25,7 +25,7 @@ class DuplicateLocationView: UITableViewController
     {
         if let Switch = sender as? UISwitch
         {
-            UserDefaults.standard.set(Switch.isOn, forKey: "DiscardDuplicates")
+            Settings.SetBoolean(Switch.isOn, ForKey: .DiscardDuplicates)
         }
     }
     
@@ -33,7 +33,7 @@ class DuplicateLocationView: UITableViewController
     {
         if let Radius = RadialMap[HorizontalDuplicateRadius.selectedSegmentIndex]
         {
-            UserDefaults.standard.set(Radius, forKey: "HorizontalCloseness")
+            Settings.SetDouble(Radius, ForKey: .HorizontalCloseness)
         }
         else
         {
@@ -45,7 +45,7 @@ class DuplicateLocationView: UITableViewController
     {
         if let Radius = RadialMap[VerticalDuplicateRadius.selectedSegmentIndex]
         {
-            UserDefaults.standard.set(Radius, forKey: "VerticalCloseness")
+            Settings.SetDouble(Radius, ForKey: .VerticalCloseness)
         }
         else
         {
