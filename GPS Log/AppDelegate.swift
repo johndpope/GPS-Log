@@ -16,49 +16,9 @@ import CoreData
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool
     {
-        InitializeDefaults()
+        Settings.Initialize()
         RegisterBackgroundTasks()
         return true
-    }
-    
-    /// Create and add default settings.
-    /// - Note: If called after initialize instantiation, all user-settings will be overwritten. User data
-    ///         (in the form of the log database) will *not* be affected.
-    func AddDefaultSettings()
-    {
-        UserDefaults.standard.set("Initialized", forKey: "Initialized")
-        UserDefaults.standard.set(1, forKey: "Period")
-        UserDefaults.standard.set("Table", forKey: "DataViews")
-        UserDefaults.standard.set(true, forKey: "DiscardDuplicates")
-        UserDefaults.standard.set(10.0, forKey: "HorizontalCloseness")
-        UserDefaults.standard.set(10.0, forKey: "VerticalCloseness")
-        UserDefaults.standard.set(true, forKey: "CollectDataWhenInBackground")
-        UserDefaults.standard.set(true, forKey: "DecodeAddresses")
-        UserDefaults.standard.set(true, forKey: "StayAwake")
-        UserDefaults.standard.set(true, forKey: "TrackHeadings")
-        UserDefaults.standard.set(10.0, forKey: "HeadingSensitivity")
-        UserDefaults.standard.set("Standard", forKey: "MapType")
-        UserDefaults.standard.set(true, forKey: "ShowCurrentLocation")
-        UserDefaults.standard.set(true, forKey: "ShowCompass")
-        UserDefaults.standard.set(true, forKey: "ShowBuildings")
-        UserDefaults.standard.set(false, forKey: "ShowTraffic")
-        UserDefaults.standard.set(true, forKey: "ShowScale")
-        UserDefaults.standard.set(true, forKey: "ShowAccumulatedPointsAsBadge")
-        UserDefaults.standard.set(true, forKey: "ShowMapBusyIndicator")
-        UserDefaults.standard.set(45.0, forKey: "MapPitch")
-        UserDefaults.standard.set(true, forKey: "MapInPerspective")
-        UserDefaults.standard.set("", forKey: "LastLongitude")
-        UserDefaults.standard.set("", forKey: "LastLatitude")
-        UserDefaults.standard.set("", forKey: "LastAltitude")
-    }
-    
-    /// Initialize defaults if there are no current default settings available.
-    func InitializeDefaults()
-    {
-        if UserDefaults.standard.string(forKey: "Initialized") == nil
-        {
-            AddDefaultSettings()
-        }
     }
     
     func RegisterBackgroundTasks()
@@ -102,7 +62,7 @@ import CoreData
     
     func applicationWillEnterForeground(_ application: UIApplication)
     {
-        if UserDefaults.standard.bool(forKey: "StayAwake")
+        if Settings.GetBoolean(ForKey: .StayAwake)
         {
             UIApplication.shared.isIdleTimerDisabled = true
         }
@@ -120,7 +80,7 @@ import CoreData
     
     func applicationDidBecomeActive(_ application: UIApplication)
     {
-        if UserDefaults.standard.bool(forKey: "StayAwake")
+        if Settings.GetBoolean(ForKey: .StayAwake)
         {
             UIApplication.shared.isIdleTimerDisabled = true
         }
