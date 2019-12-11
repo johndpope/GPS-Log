@@ -14,8 +14,8 @@ class Heading: UITableViewController
     override func viewDidLoad()
     {
         super.viewDidLoad()
-        SaveHeadings.isOn = UserDefaults.standard.bool(forKey: "TrackHeadings")
-        var Sens = UserDefaults.standard.double(forKey: "HeadingSensitivity")
+        SaveHeadings.isOn = Settings.GetBoolean(ForKey: .TrackHeadings)
+        var Sens = Settings.GetDouble(ForKey: .HeadingSensitivity)
         if Sens == 0.0
         {
             Sens = 1.0
@@ -28,7 +28,7 @@ class Heading: UITableViewController
     {
         if let Switch = sender as? UISwitch
         {
-            UserDefaults.standard.set(Switch.isOn, forKey: "TrackHeadings")
+            Settings.SetBoolean(Switch.isOn, ForKey: .TrackHeadings)
         }
     }
     
@@ -41,7 +41,7 @@ class Heading: UITableViewController
             {
                 if SegIndex == Index
                 {
-                    UserDefaults.standard.set(Value, forKey: "HeadingSensitivity")
+                    Settings.SetDouble(Value, ForKey: .HeadingSensitivity)
                     return
                 }
             }
