@@ -14,8 +14,8 @@ class MainSettings: UITableViewController, UIPickerViewDelegate, UIPickerViewDat
     override func viewDidLoad()
     {
         super.viewDidLoad()
-        StayAwakeSwitch.isOn = UserDefaults.standard.bool(forKey: "StayAwake")
-        if UserDefaults.standard.bool(forKey: "DiscardDuplicates")
+        StayAwakeSwitch.isOn = Settings.GetBoolean(ForKey: .StayAwake)
+        if Settings.GetBoolean(ForKey: .DiscardDuplicates)
         {
             DuplicateActionLabel.text = "Discard"
         }
@@ -25,7 +25,7 @@ class MainSettings: UITableViewController, UIPickerViewDelegate, UIPickerViewDat
         }
         FrequencyPicker.layer.borderColor = UIColor.black.cgColor
         FrequencyPicker.reloadAllComponents()
-        let Period = UserDefaults.standard.integer(forKey: "Period")
+        let Period = Settings.GetInteger(ForKey: .Period)
         var SelectRow = 7
         for Index in 0 ..< UpdateFrequencies.count
         {
@@ -44,9 +44,9 @@ class MainSettings: UITableViewController, UIPickerViewDelegate, UIPickerViewDat
     /// - Parameter notification: The change notification.
     @objc func HandleDefaultChanges(notification: Notification)
     {
-        if let Defaults = notification.object as? UserDefaults
+        if let _ = notification.object as? UserDefaults
         {
-            if UserDefaults.standard.bool(forKey: "DiscardDuplicates")
+            if Settings.GetBoolean(ForKey: .DiscardDuplicates)
             {
                 DuplicateActionLabel.text = "Discard"
             }
@@ -98,14 +98,14 @@ class MainSettings: UITableViewController, UIPickerViewDelegate, UIPickerViewDat
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int)
     {
         let Period = UpdateFrequencies[row]
-        UserDefaults.standard.set(Period, forKey: "Period")
+        Settings.SetInteger(Period, ForKey: .Period)
     }
     
     @IBAction func HandleGetAddressesChanged(_ sender: Any)
     {
         if let Switch = sender as? UISwitch
         {
-            UserDefaults.standard.set(Switch.isOn, forKey: "DecodeAddresses")
+            Settings.SetBoolean(Switch.isOn, ForKey: .DecodeAddresses)
         }
     }
     
@@ -118,7 +118,7 @@ class MainSettings: UITableViewController, UIPickerViewDelegate, UIPickerViewDat
     {
         if let Switch = sender as? UISwitch
         {
-            UserDefaults.standard.set(Switch.isOn, forKey: "CollectDataWhenInBackground")
+            Settings.SetBoolean(Switch.isHidden, ForKey: .CollectDataInBackground)
         }
     }
     
@@ -126,7 +126,7 @@ class MainSettings: UITableViewController, UIPickerViewDelegate, UIPickerViewDat
     {
         if let Switch = sender as? UISwitch
         {
-            UserDefaults.standard.set(Switch.isOn, forKey: "StayAwake")
+            Settings.SetBoolean(Switch.isOn, ForKey: .StayAwake)
         }
     }
     
