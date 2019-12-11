@@ -16,18 +16,18 @@ class MapSettings: UITableViewController, UIPickerViewDelegate, UIPickerViewData
     {
         super.viewDidLoad()
         MapTypeSelector.layer.borderColor = UIColor.black.cgColor
-        InPerspectiveSwitch.isOn = UserDefaults.standard.bool(forKey: "MapInPerspective")
-        ShowCurrentLocationSwitch.isOn = UserDefaults.standard.bool(forKey: "ShowCurrentLocation")
-        ShowCompassSwitch.isOn = UserDefaults.standard.bool(forKey: "ShowCompass")
-        ShowBuildingsSwitch.isOn = UserDefaults.standard.bool(forKey: "ShowBuildings")
-        ShowTrafficSwitch.isOn = UserDefaults.standard.bool(forKey: "ShowTraffic")
-        ShowScaleSwitch.isOn = UserDefaults.standard.bool(forKey: "ShowScale")
-        BusySwitch.isOn = UserDefaults.standard.bool(forKey: "ShowMapBusyIndicator")
-        var RawAngle = UserDefaults.standard.double(forKey: "MapPitch")
+        InPerspectiveSwitch.isOn = Settings.GetBoolean(ForKey: .MapInPerspective)
+        ShowCurrentLocationSwitch.isOn = Settings.GetBoolean(ForKey: .ShowCurrentLocation)
+        ShowCompassSwitch.isOn = Settings.GetBoolean(ForKey: .ShowCompass)
+        ShowBuildingsSwitch.isOn = Settings.GetBoolean(ForKey: .ShowBuildings)
+        ShowTrafficSwitch.isOn = Settings.GetBoolean(ForKey: .ShowTraffic)
+        ShowScaleSwitch.isOn = Settings.GetBoolean(ForKey: .ShowScale)
+        BusySwitch.isOn = Settings.GetBoolean(ForKey: .ShowMapBusyIndicator)
+        var RawAngle = Settings.GetDouble(ForKey: .MapPitch)
         if ![15.0, 30.0, 45.0, 60.0].contains(RawAngle)
         {
             RawAngle = 45.0
-            UserDefaults.standard.set(RawAngle, forKey: "MapPitch")
+            Settings.SetDouble(RawAngle, ForKey: .MapPitch)
         }
         let AngleIndex = PAngleMap[RawAngle]!
         AngleSegment.selectedSegmentIndex = AngleIndex
@@ -37,13 +37,13 @@ class MapSettings: UITableViewController, UIPickerViewDelegate, UIPickerViewData
         }
         MapTypeSelector.reloadAllComponents()
         var MapType: MapTypes = .Standard
-        if let TheMapType = UserDefaults.standard.string(forKey: "MapType")
+        if let TheMapType = Settings.GetString(ForKey: .MapType)
         {
             MapType = MapTypes(rawValue: TheMapType)!
         }
         else
         {
-            UserDefaults.standard.set("Standard", forKey: "MapType")
+            Settings.SetString(MapTypes.Standard.rawValue, ForKey: .MapType)
             MapType = .Standard
         }
         var Index = 0
@@ -74,7 +74,7 @@ class MapSettings: UITableViewController, UIPickerViewDelegate, UIPickerViewData
     {
         let RawPicked = MapTypeMap[row].0
         let Picked = MapTypes(rawValue: RawPicked)!
-        UserDefaults.standard.set(Picked.rawValue, forKey: "MapType")
+        Settings.SetString(Picked.rawValue, ForKey: .MapType)
     }
     
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String?
@@ -96,7 +96,7 @@ class MapSettings: UITableViewController, UIPickerViewDelegate, UIPickerViewData
     {
         if let Switch = sender as? UISwitch
         {
-            UserDefaults.standard.set(Switch.isOn, forKey: "ShowCurrentLocation")
+            Settings.SetBoolean(Switch.isOn, ForKey: .ShowCurrentLocation)
         }
     }
     
@@ -104,7 +104,7 @@ class MapSettings: UITableViewController, UIPickerViewDelegate, UIPickerViewData
     {
         if let Switch = sender as? UISwitch
         {
-            UserDefaults.standard.set(Switch.isOn, forKey: "ShowCompass")
+            Settings.SetBoolean(Switch.isOn, ForKey: .ShowCompass)
         }
     }
     
@@ -112,7 +112,7 @@ class MapSettings: UITableViewController, UIPickerViewDelegate, UIPickerViewData
     {
         if let Switch = sender as? UISwitch
         {
-            UserDefaults.standard.set(Switch.isOn, forKey: "ShowBuildings")
+            Settings.SetBoolean(Switch.isOn, ForKey: .ShowBuildings)
         }
     }
     
@@ -120,7 +120,7 @@ class MapSettings: UITableViewController, UIPickerViewDelegate, UIPickerViewData
     {
         if let Switch = sender as? UISwitch
         {
-            UserDefaults.standard.set(Switch.isOn, forKey: "ShowTraffic")
+            Settings.SetBoolean(Switch.isOn, ForKey: .ShowTraffic)
         }
     }
     
@@ -128,7 +128,7 @@ class MapSettings: UITableViewController, UIPickerViewDelegate, UIPickerViewData
     {
         if let Switch = sender as? UISwitch
         {
-            UserDefaults.standard.set(Switch.isOn, forKey: "ShowScale")
+            Settings.SetBoolean(Switch.isOn, ForKey: .ShowScale)
         }
     }
     
@@ -136,7 +136,7 @@ class MapSettings: UITableViewController, UIPickerViewDelegate, UIPickerViewData
     {
         if let Switch = sender as? UISwitch
         {
-            UserDefaults.standard.set(Switch.isOn, forKey: "ShowMapBusyIndicator")
+            Settings.SetBoolean(Switch.isOn, ForKey: .ShowMapBusyIndicator)
         }
     }
     
@@ -144,7 +144,7 @@ class MapSettings: UITableViewController, UIPickerViewDelegate, UIPickerViewData
     {
         if let Switch = sender as? UISwitch
         {
-            UserDefaults.standard.set(Switch.isOn, forKey: "MapInPerspective")
+            Settings.SetBoolean(Switch.isOn, ForKey: .MapInPerspective)
         }
     }
     
@@ -157,7 +157,7 @@ class MapSettings: UITableViewController, UIPickerViewDelegate, UIPickerViewData
             {
                 if SegIndex == NewIndex
                 {
-                    UserDefaults.standard.set(Angle, forKey: "MapPitch")
+                    Settings.SetDouble(Angle, ForKey: .MapPitch)
                     return
                 }
             }
@@ -183,6 +183,7 @@ class MapSettings: UITableViewController, UIPickerViewDelegate, UIPickerViewData
     @IBOutlet weak var MapTypeSelector: UIPickerView!
 }
 
+/// Supported map types for Apple maps.
 enum MapTypes: String, CaseIterable
 {
     case Standard = "Standard"
