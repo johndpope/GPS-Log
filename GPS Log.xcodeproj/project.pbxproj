@@ -37,6 +37,8 @@
 		17DF7AF9239A0BCB00E26998 /* SessionList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17DF7AF8239A0BCB00E26998 /* SessionList.swift */; };
 		17DF7AFB239A0CD700E26998 /* SessionCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17DF7AFA239A0CD700E26998 /* SessionCell.swift */; };
 		17DF7AFE239A30F700E26998 /* ExportData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17DF7AFD239A30F700E26998 /* ExportData.swift */; };
+		17DFC10423A093D000DD796A /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17DFC10323A093D000DD796A /* SettingsManager.swift */; };
+		17DFC10623A0983700DD796A /* SettingChangedProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17DFC10523A0983700DD796A /* SettingChangedProtocol.swift */; };
 		17EE50E8239B4B94004B1606 /* MainDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17EE50E7239B4B94004B1606 /* MainDelegate.swift */; };
 		17EE50EC239B565C004B1606 /* InfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17EE50EB239B565C004B1606 /* InfoView.swift */; };
 		17EE50EE239B6D94004B1606 /* SessionViewer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17EE50ED239B6D94004B1606 /* SessionViewer.swift */; };
@@ -122,6 +124,8 @@
 		17DF7AF8239A0BCB00E26998 /* SessionList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionList.swift; sourceTree = "<group>"; };
 		17DF7AFA239A0CD700E26998 /* SessionCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionCell.swift; sourceTree = "<group>"; };
 		17DF7AFD239A30F700E26998 /* ExportData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportData.swift; sourceTree = "<group>"; };
+		17DFC10323A093D000DD796A /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsManager.swift; sourceTree = "<group>"; };
+		17DFC10523A0983700DD796A /* SettingChangedProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingChangedProtocol.swift; sourceTree = "<group>"; };
 		17EE50E7239B4B94004B1606 /* MainDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainDelegate.swift; sourceTree = "<group>"; };
 		17EE50EB239B565C004B1606 /* InfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoView.swift; sourceTree = "<group>"; };
 		17EE50ED239B6D94004B1606 /* SessionViewer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionViewer.swift; sourceTree = "<group>"; };
@@ -205,6 +209,7 @@
 		17A135742397DCDE00EB6A2A /* GPS Log */ = {
 			isa = PBXGroup;
 			children = (
+				17DFC0FE23A093B500DD796A /* SettingsManagement */,
 				17DF7AF7239A091600E26998 /* SessionManagement */,
 				177D330C239A0062007876E8 /* Database */,
 				170CC7282399277500B25064 /* Settings */,
@@ -248,6 +253,15 @@
 				17DF7AFD239A30F700E26998 /* ExportData.swift */,
 			);
 			path = ViewControllerExtensions;
+			sourceTree = "<group>";
+		};
+		17DFC0FE23A093B500DD796A /* SettingsManagement */ = {
+			isa = PBXGroup;
+			children = (
+				17DFC10323A093D000DD796A /* SettingsManager.swift */,
+				17DFC10523A0983700DD796A /* SettingChangedProtocol.swift */,
+			);
+			path = SettingsManagement;
 			sourceTree = "<group>";
 		};
 		17EE50F1239B7C91004B1606 /* MapPlotter */ = {
@@ -416,6 +430,7 @@
 				17A5F14D239DFCFF00883B1E /* BottomDrawer.swift in Sources */,
 				17A1357A2397DCDE00EB6A2A /* ViewController.swift in Sources */,
 				170CC72A2399278900B25064 /* MainSettings.swift in Sources */,
+				17DFC10623A0983700DD796A /* SettingChangedProtocol.swift in Sources */,
 				177D330F239A00CC007876E8 /* DBManager.swift in Sources */,
 				17A1358C2397E3C100EB6A2A /* LocationCell.swift in Sources */,
 				17DF7AF9239A0BCB00E26998 /* SessionList.swift in Sources */,
@@ -427,6 +442,7 @@
 				1744817E239DEDB400B8467A /* LegalProtocol.swift in Sources */,
 				17A135782397DCDE00EB6A2A /* SceneDelegate.swift in Sources */,
 				17EE50EE239B6D94004B1606 /* SessionViewer.swift in Sources */,
+				17DFC10423A093D000DD796A /* SettingsManager.swift in Sources */,
 				17B3422D239CF3C3003A04E8 /* Heading.swift in Sources */,
 				17DF7AFE239A30F700E26998 /* ExportData.swift in Sources */,
 			);
