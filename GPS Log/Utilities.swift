@@ -200,6 +200,8 @@ class Utilities
     }
     
     /// Given the passed placemark, create an address string.
+    /// - Note: The Apple API that creates the address is throttled to one address a minute (although when
+    ///         there is low demand, it is entirely possible to get one a second).
     /// - Parameter From: The placemark from the system.
     /// - Returns: Address constructed from the placemark.
     public static func ConstructAddress(From: CLPlacemark) -> String
@@ -266,8 +268,41 @@ class Utilities
     /// - Parameter Angle: The latitude value in degrees. Negative (eg, southern) latitudes will return positive
     ///                    distances.
     /// - Returns: Length of line of latitude at given angle measure in degress. Returned length is in kilometers.
-    func LengthOfLatitude(_ Angle: Double) -> Double
+    public static func LengthOfLatitude(_ Angle: Double) -> Double
     {
         return cos(abs(Angle) * Double.pi / 180.0) * 40075.017
+    }
+    
+    /// Given an angle and radius, return the length of the arc. This function is
+    /// intended to be used to calculate coordinates on Earth. Given the Earth is
+    /// not perfectly spherical, this function is slightly inaccurate.
+    /// - Note: See [Find Arc Length](https://www.wikihow.com/Find-Arc-Length)
+    /// - Parameter Angle: Angle (in degrees) that describes the arc.
+    /// - Parameter Radius: The radius of the circle. Defaults to the mean radius of
+    ///                     the Earth (6371.0 km).
+    /// - Returns: The length of the arc described by the passed angle and radius.
+    public static func ArcLength(_ Angle: Double, _ Radius: Double = 6371.0) -> Double
+    {
+        return 2.0 * Double.pi * Radius * (Angle / 180.0)//360.0)
+    }
+    
+    /// Given a latitude and longitude, return a `CGPoint` suitable for plotting locations.
+    /// - Note: This function (and the functions it calls) treats the Earth as a perfect sphere.
+    /// - Warning: Do not use this function for critical conversions.
+    /// - Parameter Latitude: The angle of latitude (in degrees). Positive values are in the northern hemisphere,
+    ///                       negative values in the southern hemisphere. In other words, values should be clamped
+    ///                       to -180.0 to 180.0.
+    /// - Parameter Longitude: The angle of longitude (in degrees). Positive values are in the eastern hemisphere,
+    ///                        negative values in the western hemisphere. In other words, values should be clamped
+    ///                        to -90.0 to 90.0
+    /// - Returns: `CGPoint` equivalent of the passed latitude and longitude.
+    public static func CoordinateToPoint(Latitude: Double, Longitude: Double) -> CGPoint
+    {
+        //Get Y
+        let Y = ArcLength(Longitude) * 0.5
+        //Get X
+        let LatitudeCircle = LengthOfLatitude(Latitude)
+        let X = (LatitudeCircle) * (Latitude / 180.0)
+        return CGPoint(x: X, y: Y)
     }
 }
