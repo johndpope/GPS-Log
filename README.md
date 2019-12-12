@@ -10,7 +10,7 @@ Versioning for GPS Log is maintained in the `Versioning.swift` file and is autom
 
 The versioning program does not currently update the GPS Log project file's version or build numbers.
 
-Most recent build: **Version 1.0 Alpha, Build 139, Build date: 11 December 2019, 17:26**
+Most recent build: **Version 1.0 Alpha, Build 155, Build date: 12 December 2019, 17:51**
 
 ## Respository
 
