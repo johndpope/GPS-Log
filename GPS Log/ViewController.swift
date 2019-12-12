@@ -243,7 +243,8 @@ class ViewController: UIViewController,
             return UITableViewCell()
         }
         let Cell = LocationCell(style: UITableViewCell.CellStyle.default, reuseIdentifier: "LocationCell")
-        Cell.LoadData(LocationData: CurrentSession!.Locations[indexPath.row], TableWidth: DataPointTable.frame.width)
+        Cell.LoadData(LocationData: CurrentSession!.Locations[indexPath.row], TableWidth: DataPointTable.frame.width,
+                      MainFontSize: 16.0)
         return Cell
     }
     
