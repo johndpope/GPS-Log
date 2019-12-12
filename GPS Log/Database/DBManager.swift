@@ -190,7 +190,8 @@ class DBManager
         }
         let TableName = "Entries"
         let ColumnList = MakeColumnList(["Session","Latitude","Longitude","Altitude","HorizontalAccuracy","VerticalAccuracy","TimeStamp","Speed",
-                                         "Course","Address","Marked","EntryID","InstanceCount","Heading","IsHeadingChanged","HeadingTimeStamp"])
+                                         "Course","Address","Marked","EntryID","InstanceCount","Heading","IsHeadingChanged","HeadingTimeStamp",
+                                         "MapX","MapY"])
         var Update = "INSERT INTO \(TableName)\(ColumnList) VALUES("
         Update.append("'\(TrackData.SessionID.uuidString)', ")
         if !TrackData.IsHeadingChange
@@ -242,7 +243,9 @@ class DBManager
         {
             Update.append("0.0, 0, ")
         }
-        Update.append("'\(Utilities.DateToString(FinalHeadingTimeStamp))'")
+        Update.append("'\(Utilities.DateToString(FinalHeadingTimeStamp))', ")
+        Update.append("\(TrackData.MapPoint.x), ")
+        Update.append("\(TrackData.MapPoint.y)")
         Update.append(")")
         var InsertHandle: OpaquePointer? = nil
         if sqlite3_prepare_v2(DB, Update, -1, &InsertHandle, nil) != SQLITE_OK
@@ -406,6 +409,8 @@ class DBManager
             let HeadingColumn = sqlite3_column_double(QueryHandle, 14)
             let IsHeadingColumn = Int(sqlite3_column_int(QueryHandle, 15))
             let HeadingTimeColumn = String(cString: sqlite3_column_text(QueryHandle, 16))
+            let MapXColumn = sqlite3_column_double(QueryHandle, 17)
+            let MapYColumn = sqlite3_column_double(QueryHandle, 18)
             var Line = "  <DataPoint "
             Line.append(MakeXMLKVP("SessionID", SessionColumn))
             Line.append(MakeXMLKVP("Latitude", LatitudeColumn))
@@ -424,7 +429,9 @@ class DBManager
             let HeadingValue = HeadingChanged ? "\(HeadingColumn)" : ""
             Line.append(MakeXMLKVP("Heading", HeadingValue))
             Line.append(MakeXMLKVP("HeadingChanged", "\(HeadingChanged)"))
-            Line.append(MakeXMLKVP("HeadingTimeStamp", "\(HeadingTimeColumn)", AppendSpace: false))
+            Line.append(MakeXMLKVP("HeadingTimeStamp", "\(HeadingTimeColumn)"))
+            Line.append(MakeXMLKVP("MapX", "\(MapXColumn)"))
+            Line.append(MakeXMLKVP("MapY", "\(MapYColumn)", AppendSpace: false))
             Line.append("/>")
             Results.append(Line)
         }
@@ -467,6 +474,8 @@ class DBManager
             let HeadingColumn = sqlite3_column_double(QueryHandle, 14)
             let IsHeadingColumn = Int(sqlite3_column_int(QueryHandle, 15))
             let HeadingTimeColumn = String(cString: sqlite3_column_text(QueryHandle, 16))
+            let MapXColumn = sqlite3_column_double(QueryHandle, 17)
+            let MapYColumn = sqlite3_column_double(QueryHandle, 18)
             
             var SomeLocation: DataPoint? = nil
             let HeadingChanged = !(IsHeadingColumn == 0)
@@ -495,6 +504,7 @@ class DBManager
                 SomeLocation?.DecodedAddress = AddressColumn
                 SomeLocation?.InstanceCount = InstanceColumn
             }
+            SomeLocation?.MapPoint = CGPoint(x: MapXColumn, y: MapYColumn)
             SomeLocation?.EntryID = UUID(uuidString: EntryIDColumn)!
             SomeLocation?.SessionID = UUID(uuidString: SessionColumn)!
             Results.append(SomeLocation!)
