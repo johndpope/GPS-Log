@@ -113,7 +113,9 @@ class LocationCell: UITableViewCell
             TimeLabel.text = Utilities.DateToString(LocationData.Location!.timestamp)
             CoordinatesLabel.text = Utilities.CoordinatesToString(Latitude: LocationData.Location!.coordinate.latitude,
                                                                   Longitude: LocationData.Location!.coordinate.longitude,
-                                                                  Altitude: LocationData.Location!.altitude)
+                                                                  Altitude: LocationData.Location!.altitude,
+                                                                  ShowOrdinalDirections: Settings.GetBoolean(ForKey: .ShowHemisphereLabels)
+            )
             AddressLabel.text = LocationData.DecodedAddress ?? ""
         }
     }
