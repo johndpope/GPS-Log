@@ -99,6 +99,7 @@ class DataPoint
             _Location = newValue
             if _Location != nil
             {
+                MapPoint = Utilities.CoordinateToPoint(Latitude: _Location!.coordinate.latitude, Longitude: _Location!.coordinate.longitude)
                 if SkipGettingAddress
                 {
                     print("Skipping address decoding")
@@ -281,6 +282,21 @@ class DataPoint
         set
         {
             _Heading = newValue
+        }
+    }
+    
+    /// Holds the map point for the coordinates.
+    private var _MapPoint: CGPoint = CGPoint(x: 0, y: 0)
+    /// Get or set the map point for the coordinates.
+    public var MapPoint: CGPoint
+    {
+        get
+        {
+            return _MapPoint
+        }
+        set
+        {
+            _MapPoint = newValue
         }
     }
 }
