@@ -10,6 +10,12 @@ import Foundation
 import UIKit
 
 /// Wrapper around `UserDefaults.standard` to provide atomic-level change notification for settings.
+/// - Note:
+///   - See the enum `SettingKeys` for a description of each setting.
+///   - Currently, settings are stored in `UserDefaults.standard`. However, it is straightforward to refactor this class to use
+///     a different storage type, such as a database or .XML or .JSON file.
+/// - Warning: If the caller tries to access a setting with the incorrect type (such as calling `GetBoolean` with a String-
+///            backed setting), a fatal error will be generated. See `GetSettingType` for a way to avoid this.
 class Settings
 {
     /// Table of subscribers.
@@ -75,6 +81,7 @@ class Settings
         UserDefaults.standard.set("", forKey: SettingKeys.LastLongitude.rawValue)
         UserDefaults.standard.set("", forKey: SettingKeys.LastLatitude.rawValue)
         UserDefaults.standard.set("", forKey: SettingKeys.LastAltitude.rawValue)
+        UserDefaults.standard.set(true, forKey: SettingKeys.ShowHemisphereLabels.rawValue)
     }
     
     /// Call all subscribers in the notification list to let them know a setting will be changed.
@@ -351,6 +358,30 @@ class Settings
         }
     }
     
+    /// Returns the type of the backing data for the passed setting.
+    /// - Parameter ForSetting: The setting whose backing type will be returned.
+    /// - Returns: Backing type for the setting. `.Unknown` is returned if the type system does not yet comprehend the passed setting.
+    public static func GetSettingType(_ ForSetting: SettingKeys) -> SettingTypes
+    {
+        if BooleanFields.contains(ForSetting)
+        {
+            return .Boolean
+        }
+        if IntegerFields.contains(ForSetting)
+        {
+            return .Integer
+        }
+        if DoubleFields.contains(ForSetting)
+        {
+            return .Double
+        }
+        if StringFields.contains(ForSetting)
+        {
+            return .String
+        }
+        return .Unknown
+    }
+    
     /// Contains a list of all boolean-type fields.
     public static let BooleanFields =
         [
@@ -366,7 +397,8 @@ class Settings
             SettingKeys.ShowScale,
             SettingKeys.ShowBadge,
             SettingKeys.ShowMapBusyIndicator,
-            SettingKeys.MapInPerspective
+            SettingKeys.MapInPerspective,
+            SettingKeys.ShowHemisphereLabels
     ]
     
     /// Contains a list of all integer-type fields.
@@ -399,30 +431,74 @@ class Settings
 enum SettingKeys: String, CaseIterable
 {
     //Booleans
+    /// Holds the discard duplication locations flag. Duplicates are defined as one or more received locations that fall within
+    /// the user-defined volume of the last non-duplicate location. Marked locations are not bound by this flag.
     case DiscardDuplicates = "DiscardDuplicates"
+    /// Holds the collect data in the background flag. May drain the user's battery quickly.
     case CollectDataInBackground = "CollectDataWhenInBackground"
+    /// Holds the decode address of coordinate flag. Apple's API is throttled so it is very possible addresses will not be available
+    /// for all locations.
     case DecodeAddresses = "DecodeAddresses"
+    /// Holds the stay awake flag, which means the app does not go to sleep to reduce power usaged. May impact battery power levels.
     case StayAwake = "StayAwake"
+    /// Holds the track heading changes flag. Set the `HeadingSensitivity` value appropriately or the user will receive a great many
+    /// heading changes just by holding the phone.
     case TrackHeadings = "TrackHeadings"
+    /// Holds the show user's current location on the map flag.
     case ShowCurrentLocation = "ShowCurrentLocation"
+    /// Holds the show compass on the map flag.
     case ShowCompass = "ShowCompass"
+    /// Holds the show buildings (which will be extruded if `MapInPerspective` is true) on the map flag.
     case ShowBuildings = "ShowBuildings"
+    /// Holds the show traffic on the map flag. Uses network to receive traffic information, which will increase data usage and
+    /// battery usage.
     case ShowTraffic = "ShowTraffic"
+    /// Holds the show map scale flag.
     case ShowScale = "ShowScale"
+    /// Holds the show accumulated points in a session on the app icon flag.
     case ShowBadge = "ShowAccumulatedPointsAsBadge"
+    /// Holds the show map tiles downloading busy indicator.
     case ShowMapBusyIndicator = "ShowMapBusyIndicator"
+    /// Holds the map is in perspective mode flag. Use `MapPitch` to set the pitch angle of the map.
     case MapInPerspective = "MapInPerspective"
+    /// Holds the show hemispheric labels (eg, N, S, E, W) on coordinates flag.
+    case ShowHemisphereLabels = "ShowHemisphereLabels"
     //Integers
+    /// Holds the period between collecting locations. Unit is seconds.
     case Period = "Period"
     //Strings
+    /// Holds the type of map. Generated from the `MapTypes` enum.
     case MapType = "MapType"
+    /// Holds the type of data view. Generated from the `DataViews` enum.
     case DataViews = "DataViews"
+    /// Holds the most recent longitude.
     case LastLongitude = "LastLongitude"
+    /// Holds the most recent latitude.
     case LastLatitude = "LastLatitude"
+    /// Holds the most recent altitude.
     case LastAltitude = "LastAltitude"
     //Doubles
+    /// Horizontal radius for determining if a given location is a duplicate of the previously saved point.
     case HorizontalCloseness = "HorizontalCloseness"
+    /// Vertical radius for determining if a given location is a duplicate of the previously saved point.
     case VerticalCloseness = "VerticalCloseness"
+    /// Determines how many degress the device must rotate to trigger a heading changed event.
     case HeadingSensitivity = "HeadingSensitivity"
+    /// The pitch of the map when in perspective mode.
     case MapPitch = "MapPitch"
+}
+
+/// Types of setting data recognized by the SettingsManager.
+enum SettingTypes: String, CaseIterable
+{
+    /// Returned when the caller finds a setting that is not yet integrated into the type system.
+    case Unknown = "Unknown Type"
+    /// `Bool` types.
+    case Boolean = "Boolean"
+    /// `String` types.
+    case String = "String"
+    /// `Int` types.
+    case Integer = "Integer"
+    /// `Double` types.
+    case Double = "Double"
 }
