@@ -122,28 +122,22 @@ class MapView: SCNView
     /// - Parameter TheSession: Session data used to create a map.
     func DisplaySession(_ TheSession: SessionData)
     {
-        var MinX = 1000000000.0
-        var MinY = 1000000000.0
-        for SomeLocation in TheSession.Locations
+        let LeftMost = IPoint(Double.greatestFiniteMagnitude, 0.0)
+        let RightMost = IPoint(-Double.greatestFiniteMagnitude, 0.0)
+        let TopMost = IPoint(0.0, Double.greatestFiniteMagnitude)
+        let BottomMost = IPoint(0.0, -Double.greatestFiniteMagnitude)
+        
+        for Point in TheSession.Locations
         {
-            let MKPoint = MKMapPoint(SomeLocation.Location!.coordinate)
-            if MinX > MKPoint.x
-            {
-                MinX = MKPoint.x
-            }
-            if MinY > MKPoint.y
-            {
-                MinY = MKPoint.y
-            }
+            LeftMost.UpdateXIfLessThan(IPoint(Point.Location!.coordinate))
+            RightMost.UpdateXIfGreaterThan(IPoint(Point.Location!.coordinate))
+            TopMost.UpdateYIfGreaterThan(IPoint(Point.Location!.coordinate))
+            BottomMost.UpdateYIfLessThan(IPoint(Point.Location!.coordinate))
         }
-        print("MinXY=\(MinX),\(MinY)")
-        for SomeLocation in TheSession.Locations
-        {
-            let MKPoint = MKMapPoint(SomeLocation.Location!.coordinate)
-            let AdjustedX = MKPoint.x - MinX
-            let AdjustedY = MKPoint.y - MinY
-            print("\(SomeLocation.Location!.coordinate) = (\(AdjustedX),\(AdjustedY))")
-        }
+        let HDistance = abs(LeftMost.X - RightMost.X)
+        let VDistance = abs(TopMost.Y - BottomMost.Y)
+        print("Points horizontal delta: \(HDistance)")
+        print("Points vertical delta: \(VDistance)")
     }
 }
 
